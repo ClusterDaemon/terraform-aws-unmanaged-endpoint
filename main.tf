@@ -1,10 +1,14 @@
 terraform {
-  required_version = ">= 0.12"
+  required_version = ">= 0.13"
   required_providers {
     aws = {
       version = ">= 2.41"
     }
   }
+}
+
+provider "aws" {
+  region = "us-east-1"
 }
 
 data "aws_vpc_endpoint_service" "this" {
@@ -28,9 +32,9 @@ resource "aws_vpc_endpoint" "this" {
 }
 
 resource "aws_route53_zone" "this" {
-  count = var.create_resources == true && var.alternate_private_dns_domain_name != "" ? 1 : 0
+  count = var.create_resources && var.alternate_private_dns.domain != "" && var.alternate_private_dns.zone_id == "" ? 1 : 0
 
-  name = var.alternate_private_dns_domain_name
+  name = var.alternate_private_dns.domain
 
   vpc {
     vpc_id = var.vpc_id
@@ -41,10 +45,10 @@ resource "aws_route53_zone" "this" {
 }
 
 resource "aws_route53_record" "this" {
-  count = var.create_resources == true && var.alternate_private_dns_domain_name != "" && var.alternate_private_dns_hostname != "" ? 1 : 0
+  count = var.create_resources == true && var.alternate_private_dns.name != "" ? 1 : 0
 
-  name = var.alternate_private_dns_hostname
-  zone_id = join("", aws_route53_zone.this[*].zone_id )
+  name = var.alternate_private_dns.name
+  zone_id = var.alternate_private_dns.zone_id == "" ? join("", aws_route53_zone.this[*].zone_id) : var.alternate_private_dns.zone_id
   type = "A"
   
   alias {

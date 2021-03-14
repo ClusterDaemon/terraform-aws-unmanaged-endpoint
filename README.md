@@ -1,8 +1,8 @@
 # terraform-aws-unmanaged-endpoint
 
-Terraform resource module that creates a VPC interface endpoint with an optional alternative private FQDN.
+Terraform resource module that creates a VPC interface endpoint with an optional alternative private FQDN and built-in security group.
 
-The alternate private FQDN is accomplished by creating a private zone in the same VPC the VPC endpoint is in, and establishing an alias record to that VPC endpoint. This is useful for communicating with services across a VPC endpoint via HTTPS when a given domain is protected by a certificate, or when a webserver expects HTTP(s) headers to be of a particular initiating DNS name.
+The alternate private FQDN is accomplished by creating a private zone (or using an existing one), and establishing an alias record to this VPC endpoint. This is useful for communicating with services across a VPC endpoint via HTTPS when a given domain is protected by a certificate, or when a webserverx expects HTTP(s) headers to be of a particular initiating DNS name..
 
 This module captures the usage patterns required to specify a working endpoint within a single invocation.
 
@@ -25,7 +25,7 @@ This module aims to enable inter-VPC communication using a VPC endpoint to an al
  - VPC interface endpoint creation.
  - VPC endpoint service attribute discovery.
  - Arbitrary private DNS FQDN creation, pointing to the created VPC endpoint.
- - Dynamic default security group ingress with external security group IP override.
+ - Default security group open to private traffic. Default may be overridden.
  - Conditional resource creation.
 
 
@@ -36,9 +36,12 @@ See the [examples directory](examples) for complete example usage.
 
 ## Dependencies
 
+| Binary | Version |
+| terraform | >= 0.13.0 |
+
 | Provider | Version |
 | --- | --- |
-| aws | ~= 2.0 |
+| aws | >= 2.41 |
 
 | Resource |
 | --- |
@@ -58,8 +61,7 @@ See the [examples directory](examples) for complete example usage.
 | security\_group\_ingress\_rules | List of ingress rules that apply to the built-in security group. Overridden by `security_group_ids`. | list(tuple([ number, number, string ])) | [ [ 0, 0, "-1", ], ] | no |
 | security\_group\_cidr\_blocks | List of IPv4 CIDR blocks that apply to the built-in security group ingress rules. Overridden by `security_group_ids` | list(string) | \[ "0.0.0.0/0", \] | no |
 | policy | IAM policy for restricting access to this VPC endpoint. Defaults to full access. Expects an ARN. | string | nil | no |
-| alternate\_private\_dns\_domain\_name | Alternate private DNS domain name for communicating over this VPC endpoint. May be used to construct an initiating FQDN that is an alias of the VPC endpoint DNS entry list. | string | nil | no |
-| alternate\_private\_dns\_hostname | Hostname to associate with alternate private DNS record pointing to this VPC endpoint. May be used to construct an initiating FQDN that is an alias of the VPC endpoint DNS entry list. | string | nil | no |
+| alternate\_private\_dns | Attributes which set a domain and alias record that points to a VPC endpoint. Useful when a VPC endpoint service requires traffic to be initated using a specific URL in order to route requests properly. | object({`name` = string, `domain` = string, zone\_id = ""}) | {`name` = "", `domain` = "", zone\_id = ""}) | no |
 | tags | Map of AWS tags which apply to the VPC endpoint. | map(string) | nil | no |
 | create\_resources | Controls whether any resource in-module is created. | bool | true | no |
 
@@ -71,7 +73,7 @@ See the [examples directory](examples) for complete example usage.
 | endpoint\_id | AWS Id of the VPC interface endpoint. | string |
 | endpoint\_network\_interface\_ids | List of network interface (EIF) IDs for the VPC endpoint. | list(string) |
 | endpoint\_dns\_entry | List of DNS attributes that describe the VPC endpoint interface(s) - accessible only within the VPC this VPC endpoint resides. Includes `dns_name` and `hosted_zone_id`. | list(object({ `dns_name` = string, `hosted_zone_id` = string, })) |
-| endpoint\_alternate\_dns\_entry | "DNS attributes associated with a VPC endpoint interface. These are set by this module, are private to the VPC in which this endpoint resides, and may be used to resolve this endpoint via an arbitrary DNS name. This can be useful when dealing with VPC endpoint services which expect initiators to use a specific URL to route requests internally. | object({ `dns_name` = string, `hosted_zone_id` = string })
+| endpoint\_alternate\_dns\_entry | "Private DNS attributes associated with a VPC endpoint interface. This can be useful when dealing with VPC endpoint services which expect initiators to use a specific URL to route requests internally. | object({`dns_name` = string, `hosted_zone_id` = string})
 
 ## Resource Types
 

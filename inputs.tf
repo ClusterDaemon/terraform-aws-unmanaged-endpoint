@@ -17,12 +17,12 @@ variable "tags" {
 }
 
 variable "vpc_id" {
-  description = "VPC ID in which the VPC endpoint will be created."
+  description = "VPC in which the VPC endpoint will be created."
   type = string
 }
 
 variable "vpc_endpoint_service_name" {
-  description = "AWS Registry name of the VPC endpoint service which this VPC endpoint will be associated with. Must be specified in the form of an FQDN."
+  description = "AWS Endpoint Registry name of the VPC endpoint service which this VPC endpoint will be associated with. Must be specified in the form of an FQDN."
   type = string
 }
 
@@ -33,7 +33,7 @@ variable "auto_accept" {
 }
 
 variable "subnet_ids" {
-  description = "Subnet IDs that will be associated with this VPC endpoint - this ultimately creates EIF devices in those subnets. Only subnets that are colocated in availability zones which the VPC endpoint service are hosted in will be accepted."
+  description = "Subnets in which EIFs will be created. Only subnets that are colocated in availability zones which the VPC endpoint service are hosted in will work. All others will yield an error."
   type = list(string)
 }
 
@@ -44,13 +44,13 @@ variable "security_group_ids" {
 }
 
 variable "security_group_ingress_rules" {
-  description = "List of ingress rules that apply to the built-in security group. Overridden by 'security_group_ids'."
+  description = "List of ingress rules that apply to the built-in security group. Overridden by 'security_group_ids'. The default of allowing all ports is still fairly secure, as this rule is applied only to private traffic. However, it is still prudent to restrict this if required ports and protocols are known ahead of time."
   type = list(tuple([ number, number, string ]))
   default = [[0, 0, "-1"]]
 }
 
 variable "security_group_cidr_blocks" {
-  description = "List of IPv4 CIDR blocks that apply to the built-in security group ingress rules. Overridden by 'security_group_ids'."
+  description = "List of IPv4 CIDR blocks that apply to the built-in security group ingress rules. Overridden by 'security_group_ids'. The default of 0.0.0.0/0 is still secure, as this still only allows private network nodes to ingress this endpoint."
   type = list(string)
   default = ["0.0.0.0/0"]
 }
@@ -61,14 +61,8 @@ variable "policy" {
   default = ""
 }
 
-variable "alternate_private_dns_domain_name" {
-  description = "Alternate private DNS domain name for communicating over this VPC endpoint. May be used to construct an initiating FQDN that is an alias of the VPC endpoint DNS entry list."
-  type = string
-  default = ""
-}
-
-variable "alternate_private_dns_hostname" {
-  description = "Hostname to associate with a private DNS record pointing to this VPC endpoint. May be used to construct an initiating FQDN that is an alias of the VPC endpoint DNS entry list."
-  type = string
-  default = ""
+variable "alternate_private_dns" {
+  description = "Attributes which set a domain and alias record that points to a VPC endpoint. Useful when a VPC endpoint service requires traffic to be initated using a specific URL in order to route requests properly. Expected attributes are name and domain, or name and zone_id. Use zone_id for a private zone which already exists. Use domain to make a zone exist."
+  type = object({name = string, domain = string, zone_id = string})
+  default = {name = "", domain = "", zone_id = ""}
 }
