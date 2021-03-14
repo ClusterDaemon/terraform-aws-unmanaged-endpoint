@@ -1,16 +1,3 @@
-## v2.0.0
+## v0.1.0 - Initial Release
 
- * Restructured manifest
- * Fixed security group ID override
- * Updated docs
-
-## v1.1.0
-
-#### NEW FEATURES
-
- * Added `subnets` module attribute, allowing subnets within an allocated TGW CIDR block to be passed to this module. This new attribute disables automatic subnet creation when specified.
- * Documentation updates.
-
-## v1.0.0
-
-Initial production release.
+This represents an initial release that "should work". There is no automated testing, though this code validates and should form a working plan. No promises.
