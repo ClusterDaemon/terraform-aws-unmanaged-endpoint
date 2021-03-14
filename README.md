@@ -37,6 +37,7 @@ See the [examples directory](examples) for complete example usage.
 ## Dependencies
 
 | Binary | Version |
+| --- | --- |
 | terraform | >= 0.13.0 |
 
 | Provider | Version |
