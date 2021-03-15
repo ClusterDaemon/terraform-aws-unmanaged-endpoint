@@ -7,10 +7,6 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = "us-east-1"
-}
-
 data "aws_vpc_endpoint_service" "this" {
   service_name = var.vpc_endpoint_service_name
 }
